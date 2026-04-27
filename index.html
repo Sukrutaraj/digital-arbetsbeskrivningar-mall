@@ -279,7 +279,7 @@ function playRec(i){
 
 async function exportFiles(){
 
-  alert("Filer laddas ner...");
+  alert("Filer laddas ner stegvis...");
 
   let delay = 0;
 
@@ -289,14 +289,14 @@ async function exportFiles(){
       setTimeout(()=>{
         download(step.img, `bild_${i+1}.jpg`);
       }, delay);
-      delay += 400;
+      delay += 500;
     }
 
     if(step.audio){
       setTimeout(()=>{
         download(step.audio, `ljud_${i+1}.webm`);
       }, delay);
-      delay += 400;
+      delay += 500;
     }
 
   });
@@ -312,17 +312,72 @@ function downloadHTML(){
 
   updateData();
 
-  let html = `<h2>${checklistData.title}</h2>`;
+  let html = `
+  <!DOCTYPE html>
+  <html lang="sv">
+  <head>
+    <meta charset="UTF-8">
+    <title>${checklistData.title}</title>
+
+    <style>
+      body{
+        font-family:sans-serif;
+        background:#f5f5f5;
+        padding:20px;
+        max-width:800px;
+        margin:auto;
+      }
+
+      h2{
+        text-align:center;
+      }
+
+      .step{
+        background:white;
+        padding:12px;
+        margin:12px 0;
+        border-radius:12px;
+      }
+
+      img{
+        max-width:200px;
+        border-radius:8px;
+        display:block;
+        margin-top:8px;
+      }
+
+      button{
+        margin-top:6px;
+        padding:6px 10px;
+        border-radius:6px;
+        cursor:pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+
+  <h2>${checklistData.title}</h2>
+  `;
 
   checklistData.steps.forEach((s,i)=>{
     html += `
-    <div>
-      <b>Steg ${i+1}</b><br>
-      ${s.text||""}<br>
-      ${s.img ? `<img src="${s.img}">` : ''}
-      ${s.audio ? `<button onclick="new Audio('${s.audio}').play()">▶️</button>` : ''}
-    </div><br>`;
+      <div class="step">
+        <b>Steg ${i+1}</b><br>
+        ${s.text||""}<br>
+
+        ${s.img ? `<img src="${s.img}">` : ''}
+
+        ${s.audio ? `<button onclick="new Audio('${s.audio}').play()">▶️ Spela</button>` : ''}
+
+      </div>
+    `;
   });
+
+  html += `
+  </body>
+  </html>
+  `;
 
   download(html, "checklista.html", "text/html");
 }
@@ -389,14 +444,21 @@ function generatePreview(){
   preview.style.display="block";
 }
 
-/* ===== DOWNLOAD ===== */
+/* ===== DOWNLOAD (FIXAD) ===== */
 
 function download(data,name,type="text/plain"){
   const blob = new Blob([data],{type});
+  const url = URL.createObjectURL(blob);
+
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
+  a.href=url;
   a.download=name;
+
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 /* INIT */
